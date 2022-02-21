@@ -1,0 +1,6 @@
+addSbtPlugin("ch.epfl.scala"     % "sbt-bloop"       % "1.4.12")
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"    % "2.4.6")
+addSbtPlugin("com.dwijnand"      % "sbt-dynver"      % "4.1.1")
+addSbtPlugin("se.marcuslonnberg" % "sbt-docker"      % "1.8.3")
+addSbtPlugin("com.eed3si9n"      % "sbt-assembly"    % "1.1.0")
+addSbtPlugin("com.waioeka.sbt"   % "cucumber-plugin" % "0.3.1")

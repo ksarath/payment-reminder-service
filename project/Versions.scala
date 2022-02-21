@@ -1,0 +1,17 @@
+object Version {
+  val scala3          = "3.1.0"
+  val zio             = "1.0.13"
+  val zioConfig       = "2.0.0"
+  val zioLogging      = "0.5.14"
+  val zioKafka        = "0.17.1"
+  val apacheCommonsIO = "2.8.0"
+  val circeV          = "0.14.1"
+  val awsSdk          = "2.17.110"
+  val logback         = "1.2.7"
+  val dynosaur        = "0.3.0"
+  val cucumberScala   = "8.0.0"
+  val cucumberJunit   = "7.0.0"
+  val junitV          = "5.8.1"
+  val junitSuiteV     = "1.8.1"
+  val testcontainersV = "1.16.2"
+}

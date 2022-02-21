@@ -1,0 +1,14 @@
+paymentReminder:
+    eventSource:
+        kafka:
+            clients:
+                security:
+                    protocol: PLAINTEXT
+                timeoutInSeconds: 300
+                bootstrapServers: 
+                - localhost:9092
+                - localhost:9094
+            consumers:
+                paymentEvents:
+                    consumerGroup: payment-reminder
+                    topic: payment-events-dev

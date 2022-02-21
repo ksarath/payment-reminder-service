@@ -1,2 +1,13 @@
+.metals
+.vscode
+.bloop
+project/target/
+project/project/
+project/.bloop/
+project/metals.sbt
+target/
+.idea
+.DS_Store
 *.class
-*.log
+.bsp
+.gradle
