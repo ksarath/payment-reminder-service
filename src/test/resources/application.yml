@@ -1,0 +1,7 @@
+kafkaClients:
+    security:
+        protocol: SSL
+    timeoutInSeconds: 300
+    bootstrapServers: 
+    - localhost:9092
+    - localhost:9094

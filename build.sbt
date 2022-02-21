@@ -68,7 +68,7 @@ val mainDependencies = Seq(
   // ZIO Config
   "dev.zio" %% "zio-config"          % Version.zioConfig,
   "dev.zio" %% "zio-config-magnolia" % Version.zioConfig,
-  "dev.zio" %% "zio-config-typesafe" % Version.zioConfig,
+  "dev.zio" %% "zio-config-yaml"     % Version.zioConfig,
 
   // ZIO Logging
   "dev.zio" %% "zio-logging" % Version.zioLogging,

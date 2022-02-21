@@ -1,0 +1,3 @@
+kafkaClients:
+    security:
+        protocol: PLAINTEXT
