@@ -30,12 +30,7 @@ object Main extends ZIOAppDefault:
       KafkaConsumer.live,
       ApplicationConfig.live
       // AdminService.live,
-      // MessageHandler.live,
       // MessagePublisher.live,
-      // MessageConsumer.live,
-      // TransferReadModelClient.live,
-      // ManuscriptReadModelClient.live,
-      // SubmissionFilesReadModelClient.live
     )
 
   // def createDeadLetterTopic: ZIO[ApplicationConfig with AdminService, Throwable, Unit] =
