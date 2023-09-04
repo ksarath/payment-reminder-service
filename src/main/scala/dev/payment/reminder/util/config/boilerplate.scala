@@ -48,14 +48,28 @@ private def readResourceFile(file: String): File =
 
   tempFile
 
-private val kafkaConsumerConfig = deriveConfig[KafkaConsumerConfig]
-private val kafkaClientsConfig  = deriveConfig[KafkaClientsConfig]
+private val kafkaErrorTopicConfig = deriveConfig[KafkaErrorTopicConfig]
+private val kafkaProducerConfig   = deriveConfig[KafkaProducerConfig]
+private val kafkaConsumerConfig   = deriveConfig[KafkaConsumerConfig]
+private val kafkaClientsConfig    = deriveConfig[KafkaClientsConfig]
 val applicationConfig =
   (
     kafkaClientsConfig.nested("clients").nested("kafka").nested("eventSource").nested("paymentReminder") zip
       kafkaConsumerConfig
         .nested("paymentEvents")
         .nested("consumers")
+        .nested("kafka")
+        .nested("eventSource")
+        .nested("paymentReminder") zip
+      kafkaProducerConfig
+        .nested("paymentEvents")
+        .nested("producers")
+        .nested("kafka")
+        .nested("eventSource")
+        .nested("paymentReminder") zip
+      kafkaErrorTopicConfig
+        .nested("paymentEvents")
+        .nested("errors")
         .nested("kafka")
         .nested("eventSource")
         .nested("paymentReminder")

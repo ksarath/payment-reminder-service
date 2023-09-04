@@ -88,42 +88,54 @@ Docker / daemonUser                    := dockerDaemonUser
 dockerUpdateLatest                     := true
 dockerExposedPorts ++= Seq(9000, 9001)
 dockerBaseImage := "amazoncorretto:17"
-dockerEnvVars ++= Map(
-  ("NEW_RELIC_APP_NAME", applicationName),
-  ("NEW_RELIC_ACCOUNT_ID", ""),
-  ("NEW_RELIC_INSIGHTS_KEY", ""),
-  ("NEW_RELIC_LICENSE_KEY", ""),
-  ("NEW_RELIC_LOG_FILE_NAME", "STDOUT"),
-  (
-    "NEW_RELIC_SYNC_STARTUP",
-    "true"
-  ), // Connect the New Relic collector immediately upon app startup, so that we definitely connect before service exits
-  (
-    "NEW_RELIC_SEND_DATA_ON_EXIT",
-    "true"
-  ), // Enable delayed JVM shutdown to give the agent a chance to send latest metric data to New Relic before JVM shutdown.
-  (
-    "NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD",
-    "0"
-  ) // Apply SEND_DATA_ON_EXIT immediately (defaults to 60 seconds), so we send data on exit even if service runs for less than 60 seconds.
-)
-Docker / dockerCommands := {
-  val commands = dockerCommands.value
-  val index = commands.indexWhere {
-    case Cmd("USER", args) => args == dockerDaemonUser
-    case _                 => false
-  }
-  commands.patch(
-    index,
-    Seq(
-      ExecCmd(
-        "RUN",
-        "curl",
-        "-o",
-        "/opt/docker/newrelic-agent/newrelic.yml",
-        "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.yml"
-      )
-    ),
-    0
+dockerEnvVars ++= sys.env
+  .get("ENVIRONMENT")
+  .find(_ == "prod")
+  .map(_ =>
+    Map(
+      ("NEW_RELIC_APP_NAME", applicationName),
+      ("NEW_RELIC_ACCOUNT_ID", ""),
+      ("NEW_RELIC_INSIGHTS_KEY", ""),
+      ("NEW_RELIC_LICENSE_KEY", ""),
+      ("NEW_RELIC_LOG_FILE_NAME", "STDOUT"),
+      (
+        "NEW_RELIC_SYNC_STARTUP",
+        "true"
+      ), // Connect the New Relic collector immediately upon app startup, so that we definitely connect before service exits
+      (
+        "NEW_RELIC_SEND_DATA_ON_EXIT",
+        "true"
+      ), // Enable delayed JVM shutdown to give the agent a chance to send latest metric data to New Relic before JVM shutdown.
+      (
+        "NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD",
+        "0"
+      ) // Apply SEND_DATA_ON_EXIT immediately (defaults to 60 seconds), so we send data on exit even if service runs for less than 60 seconds.
+    )
   )
-}
+  .getOrElse(Map.empty)
+Docker / dockerCommands := sys.env
+  .get("ENVIRONMENT")
+  .find(_ == "prod")
+  .map(_ => 
+    {
+      val commands = dockerCommands.value
+      val index = commands.indexWhere {
+        case Cmd("USER", args) => args == dockerDaemonUser
+        case _                 => false
+      }
+      commands.patch(
+        index,
+        Seq(
+          ExecCmd(
+            "RUN",
+            "curl",
+            "-o",
+            "/opt/docker/newrelic-agent/newrelic.yml",
+            "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.yml"
+          )
+        ),
+        0
+      )
+    }
+  )
+  .getOrElse(dockerCommands.value)

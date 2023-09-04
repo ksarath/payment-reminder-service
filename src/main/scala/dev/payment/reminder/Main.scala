@@ -3,7 +3,8 @@ package dev.payment.reminder
 import dev.payment.reminder.config.ApplicationConfig
 import dev.payment.reminder.domain.event.source.Consumer
 import dev.payment.reminder.domain.policies.EventPolicy
-import dev.payment.reminder.impl.event.source.KafkaConsumer
+import dev.payment.reminder.error.ErrorChannel
+import dev.payment.reminder.impl.event.source.kafka.*
 import dev.payment.reminder.util.config.configProvider
 
 import zio.Cause
@@ -27,13 +28,17 @@ object Main extends ZIOAppDefault:
       Scope.default,
       Consumer.live,
       EventPolicy.live,
+      ErrorChannel.live,
+      KafkaAdmin.live,
       KafkaConsumer.live,
+      KafkaProducer.live,
       ApplicationConfig.live
     )
 
   val program =
     for
       _ <- ZIO.logInfo("Started payment reminder application")
+      _ <- ErrorChannel.connect()
       _ <- Consumer.consumeEvents()
       _ <- ZIO.logInfo(s"Shutting down payment reminder application")
     yield ()

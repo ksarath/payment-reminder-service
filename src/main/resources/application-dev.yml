@@ -2,12 +2,20 @@ paymentReminder:
     eventSource:
         kafka:
             clients:
-                security:
-                    protocol: PLAINTEXT
-                timeoutInSeconds: 300
-                bootstrapServers: 
-                    - kafka:9092
+              security:
+                protocol: PLAINTEXT
+              timeoutInSeconds: 300
+              bootstrapServers: 
+                - kafka:9092
             consumers:
-                paymentEvents:
-                    consumerGroup: payment-reminder
-                    topic: payment-events-dev
+              paymentEvents:
+                consumerGroup: payment-reminder
+                topic: payment-events-dev
+            producers:
+              paymentEvents:
+                topic: payment-events-dev
+            errors:
+              paymentEvents:
+                topic: payment-events-errors-dev
+                partitions: 1
+                replicationFactor: 1

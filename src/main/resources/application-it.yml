@@ -2,14 +2,21 @@ paymentReminder:
     eventSource:
         kafka:
             clients:
-                security:
-                    protocol: SSL
-                timeoutInSeconds: 300
-                bootstrapServers: 
+              security:
+                protocol: SSL
+              timeoutInSeconds: 300
+              bootstrapServers: 
                 - localhost:9092
                 - localhost:9094
             consumers:
-                paymentEvents:
-                    consumerGroup: payment-reminder
-                    topic: payment-events-it
-
+              paymentEvents:
+                consumerGroup: payment-reminder
+                topic: payment-events-it
+            producers:
+              paymentEvents:
+                topic: payment-events-it
+            errors:
+              paymentEvents:
+                topic: payment-events-errors-it
+                partitions: 1
+                replicationFactor: 1

@@ -1,19 +1,14 @@
-package dev.payment.reminder.impl.event.source
+package dev.payment.reminder.impl.event.source.kafka
 
 import dev.payment.reminder.config.ApplicationConfig
 import dev.payment.reminder.error.KafkaReadError
 
-import zio.{Schedule, ZIO, ZLayer}
+import zio.{Scope, ZIO, ZLayer}
 import zio.Duration.fromMillis
-import zio.Scope
-import zio.durationInt
-import zio.kafka.consumer.{CommittableRecord, ConsumerSettings, Offset, OffsetBatch}
-import zio.kafka.consumer.{Consumer, Subscription}
+import zio.kafka.consumer.{CommittableRecord, Consumer, ConsumerSettings, Offset, OffsetBatch, Subscription}
 import zio.kafka.consumer.Consumer.{AutoOffsetStrategy, OffsetRetrieval}
-import zio.kafka.serde.Deserializer.fromKafkaDeserializer
 import zio.kafka.serde.Serde
-import zio.stream.ZSink
-import zio.stream.ZStream
+import zio.stream.{ZSink, ZStream}
 
 trait KafkaConsumer:
   def read(topic: String): ZStream[Any, KafkaReadError, CommittableRecord[String, String]]
