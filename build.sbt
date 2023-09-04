@@ -1,119 +1,129 @@
-import sbt.Keys.parallelExecution
+import com.typesafe.sbt.packager.docker.Cmd
+import com.typesafe.sbt.packager.docker.ExecCmd
 
-name := "payment-reminder-service"
+val dockerDaemonUser = "daemon"
+val applicationName  = "payment-reminder-service"
+val scala3V          = "3.3.0"
+val zioV             = "2.0.15"
+val zioConfigV       = "4.0.0-RC16"
+val zioKafkaV        = "2.4.2"
+val zioLoggingV      = "2.1.13"
+val apacheCommonsIOV = "2.8.0"
+val circeV           = "0.14.1"
+val awsSdkV          = "2.20.115"
+val dynosaurV        = "0.6.0"
+val logbackV         = "1.4.6"
+val zioMockV         = "1.0.0-RC11"
+val newrelicAgentV   = "8.5.0"
 
-ThisBuild / scalaVersion := Version.scala3
+name := applicationName
 
-ThisBuild / Compile / mainClass        := Some("Main")
-ThisBuild / run / mainClass            := Some("Main")
-ThisBuild / packageBin / mainClass     := Some("Main")
-ThisBuild / assembly / assemblyJarName := s"${name.value}-assembly.jar"
+version := "0.1"
 
-ThisBuild / dynverSeparator  := "-"
-ThisBuild / dynverVTagPrefix := false
-
-enablePlugins(CucumberPlugin, DockerPlugin)
-
-IntegrationTest / parallelExecution := false
-CucumberPlugin.glues                := List("com.waioeka.sbt", "steps")
-
-// workaround to accept the integration test classpath to cucumber plugin
-CucumberPlugin.javaOptions := List(
-  "-classpath",
-  ((fullClasspath in IntegrationTest) map { cp => cp.toList.map(_.data.toPath) }).value mkString ":"
-)
-
-docker / dockerfile := {
-  val jarFile: File = (Compile / packageBin / sbt.Keys.`package`).value
-  val classpath     = (Compile / managedClasspath).value
-  val mainclass     = (Compile / packageBin / mainClass).value.getOrElse(sys.error("Expected exactly one main class"))
-  val jarTarget     = s"/application/${name.value}.jar"
-
-  // Make a colon separated classpath with the JAR file
-  val classpathString = classpath.files.map("/application/" + _.getName).mkString(":") + ":" + jarTarget
-
-  new Dockerfile {
-    // Base image
-    from("adoptopenjdk/openjdk11")
-    // Add all files on the classpath
-    add(classpath.files, "/application/")
-    // Add the JAR file
-    add(jarFile, jarTarget)
-    // On launch run Java with the classpath and the main class
-    entryPoint("java", "-cp", classpathString, mainclass)
-  }
-}
-
-ThisBuild / assemblyMergeStrategy := {
-  case "module-info.class"                     => MergeStrategy.discard
-  case "META-INF/io.netty.versions.properties" => MergeStrategy.discard
-  case PathList(ps @ _*)
-      if Set(
-        "codegen.config",
-        "service-2.json",
-        "waiters-2.json",
-        "customization.config",
-        "examples-1.json",
-        "paginators-1.json"
-      ).contains(ps.last) =>
-    MergeStrategy.discard
-  case x => MergeStrategy.defaultMergeStrategy(x)
-}
+scalaVersion := scala3V
 
 val mainDependencies = Seq(
   // ZIO
-  "dev.zio" %% "zio"         % Version.zio,
-  "dev.zio" %% "zio-streams" % Version.zio,
+  "dev.zio" %% "zio"         % zioV,
+  "dev.zio" %% "zio-streams" % zioV,
 
   // ZIO Config
-  "dev.zio" %% "zio-config"          % Version.zioConfig,
-  "dev.zio" %% "zio-config-magnolia" % Version.zioConfig,
-  "dev.zio" %% "zio-config-yaml"     % Version.zioConfig,
+  "dev.zio" %% "zio-config"          % zioConfigV,
+  "dev.zio" %% "zio-config-magnolia" % zioConfigV,
+  "dev.zio" %% "zio-config-yaml"     % zioConfigV,
 
   // ZIO Logging
-  "dev.zio" %% "zio-logging" % Version.zioLogging,
+  "dev.zio" %% "zio-logging" % zioLoggingV,
 
   // ZIO Kafka
-  "dev.zio" %% "zio-kafka" % Version.zioKafka,
+  "dev.zio" %% "zio-kafka" % zioKafkaV,
 
   // Circe
-  "io.circe" %% "circe-core"    % Version.circeV,
-  "io.circe" %% "circe-generic" % Version.circeV,
-  "io.circe" %% "circe-parser"  % Version.circeV,
+  "io.circe" %% "circe-core"    % circeV,
+  "io.circe" %% "circe-generic" % circeV,
+  "io.circe" %% "circe-parser"  % circeV,
 
   // DynamoDb
-  "org.systemfw" %% "dynosaur-core" % Version.dynosaur,
+  "org.systemfw" %% "dynosaur-core" % dynosaurV,
 
   // AWS
-  "software.amazon.awssdk" % "sts"      % Version.awsSdk,
-  "software.amazon.awssdk" % "ses"      % Version.awsSdk,
-  "software.amazon.awssdk" % "dynamodb" % Version.awsSdk,
-  "software.amazon.awssdk" % "sfn"      % Version.awsSdk
+  "software.amazon.awssdk" % "sts"      % awsSdkV,
+  "software.amazon.awssdk" % "ses"      % awsSdkV,
+  "software.amazon.awssdk" % "dynamodb" % awsSdkV,
+  "software.amazon.awssdk" % "sfn"      % awsSdkV
 )
 
 val commonDeps = Seq(
-  "commons-io"     % "commons-io"      % Version.apacheCommonsIO,
-  "ch.qos.logback" % "logback-classic" % Version.logback
+  "commons-io"     % "commons-io"      % apacheCommonsIOV,
+  "ch.qos.logback" % "logback-classic" % logbackV
 )
 
 val testDeps = Seq(
-  "dev.zio" %% "zio-test"          % Version.zio % "test",
-  "dev.zio" %% "zio-test-sbt"      % Version.zio % "test",
-  "dev.zio" %% "zio-test-magnolia" % Version.zio % "test"
+  "dev.zio" %% "zio-test"          % zioV % "test",
+  "dev.zio" %% "zio-test-sbt"      % zioV % "test",
+  "dev.zio" %% "zio-test-magnolia" % zioV % "test"
 )
 
-val itTestDeps = Seq(
-  "io.cucumber"                %% "cucumber-scala"       % Version.cucumberScala   % "it",
-  "io.cucumber"                 % "cucumber-junit"       % Version.cucumberJunit   % "it",
-  "org.testcontainers"          % "testcontainers"       % Version.testcontainersV % "it",
-  "com.dimafeng"               %% "testcontainers-scala" % "0.39.12"               % "it",
-  "com.typesafe.scala-logging" %% "scala-logging"        % "3.9.4"                 % "it"
-)
-
-libraryDependencies ++= mainDependencies ++ commonDeps ++ testDeps ++ itTestDeps
+libraryDependencies ++= mainDependencies ++ commonDeps ++ testDeps
 
 testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
 
-lazy val paymentReminderService =
-  project.in(file(".")).configs(IntegrationTest).settings(Defaults.itSettings)
-//settings(inConfig(IntegrationTest)(JupiterPlugin.scopedSettings))
+enablePlugins(
+  JavaAgent,
+  JavaAppPackaging,
+  DockerPlugin
+)
+
+javaAgents ++= sys.env
+  .get("ENVIRONMENT")
+  .find(_ == "prod")
+  .map(_ => Seq("com.newrelic.agent.java" % "newrelic-agent" % newrelicAgentV % "runtime"))
+  .getOrElse(Nil)
+
+Compile / mainClass                    := Some("dev.payment.reminder.Main")
+Compile / packageDoc / publishArtifact := false
+Docker / packageName                   := applicationName
+Docker / daemonUserUid                 := None
+Docker / daemonUser                    := dockerDaemonUser
+dockerUpdateLatest                     := true
+dockerExposedPorts ++= Seq(9000, 9001)
+dockerBaseImage := "amazoncorretto:17"
+dockerEnvVars ++= Map(
+  ("NEW_RELIC_APP_NAME", applicationName),
+  ("NEW_RELIC_ACCOUNT_ID", ""),
+  ("NEW_RELIC_INSIGHTS_KEY", ""),
+  ("NEW_RELIC_LICENSE_KEY", ""),
+  ("NEW_RELIC_LOG_FILE_NAME", "STDOUT"),
+  (
+    "NEW_RELIC_SYNC_STARTUP",
+    "true"
+  ), // Connect the New Relic collector immediately upon app startup, so that we definitely connect before service exits
+  (
+    "NEW_RELIC_SEND_DATA_ON_EXIT",
+    "true"
+  ), // Enable delayed JVM shutdown to give the agent a chance to send latest metric data to New Relic before JVM shutdown.
+  (
+    "NEW_RELIC_SEND_DATA_ON_EXIT_THRESHOLD",
+    "0"
+  ) // Apply SEND_DATA_ON_EXIT immediately (defaults to 60 seconds), so we send data on exit even if service runs for less than 60 seconds.
+)
+Docker / dockerCommands := {
+  val commands = dockerCommands.value
+  val index = commands.indexWhere {
+    case Cmd("USER", args) => args == dockerDaemonUser
+    case _                 => false
+  }
+  commands.patch(
+    index,
+    Seq(
+      ExecCmd(
+        "RUN",
+        "curl",
+        "-o",
+        "/opt/docker/newrelic-agent/newrelic.yml",
+        "https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic.yml"
+      )
+    ),
+    0
+  )
+}

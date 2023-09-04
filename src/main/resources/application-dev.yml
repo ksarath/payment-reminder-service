@@ -6,8 +6,7 @@ paymentReminder:
                     protocol: PLAINTEXT
                 timeoutInSeconds: 300
                 bootstrapServers: 
-                - localhost:9092
-                - localhost:9094
+                    - kafka:9092
             consumers:
                 paymentEvents:
                     consumerGroup: payment-reminder
