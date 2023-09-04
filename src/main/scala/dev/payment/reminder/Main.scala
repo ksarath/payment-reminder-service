@@ -29,20 +29,11 @@ object Main extends ZIOAppDefault:
       EventPolicy.live,
       KafkaConsumer.live,
       ApplicationConfig.live
-      // AdminService.live,
-      // MessagePublisher.live,
     )
-
-  // def createDeadLetterTopic: ZIO[ApplicationConfig with AdminService, Throwable, Unit] =
-  //   for
-  //     config <- ZIO.service[AppConfig]
-  //     _      <- AdminService.createTopicIfNotExists(KafkaTopic(s"${config.consumerConfig.consumerGroup}-deadletter", 1, 1))
-  //   yield ()
 
   val program =
     for
       _ <- ZIO.logInfo("Started payment reminder application")
-      // _ <- createDeadLetterTopic
       _ <- Consumer.consumeEvents()
       _ <- ZIO.logInfo(s"Shutting down payment reminder application")
     yield ()
