@@ -1,24 +1,18 @@
 package dev.payment.reminder.impl.event.source
 
 import dev.payment.reminder.config.KafkaConsumerConfig
-import dev.payment.reminder.domain.entities.events.Event
 import dev.payment.reminder.domain.event.source.Consumer
 import dev.payment.reminder.domain.policies.EventPolicy
-import dev.payment.reminder.error.{ApplicationError, KafkaCommitError}
+import dev.payment.reminder.error.{ApplicationError, ErrorChannel, KafkaCommitError}
+import dev.payment.reminder.error.ErrorMessage
+import dev.payment.reminder.impl.event.source.kafka.KafkaConsumer
 import dev.payment.reminder.util.json.decodeKafkaMessage
 
-import zio.Clock
 import zio.ZIO
-import zio.ZLayer
-import zio.kafka.consumer.CommittableRecord
-import zio.kafka.consumer.Offset
-import zio.kafka.consumer.OffsetBatch
-import zio.kafka.consumer.Subscription
-import zio.kafka.serde.Deserializer.fromKafkaDeserializer
 import zio.stream.ZStream
 
 class ConsumerImpl(consumer: KafkaConsumer, consumerConfig: KafkaConsumerConfig) extends Consumer:
-  override def consume(): ZStream[EventPolicy, ApplicationError, Unit] =
+  override def consume(): ZStream[EventPolicy with ErrorChannel, ApplicationError, Unit] =
     for
       _ <-
         consumer
@@ -31,8 +25,8 @@ class ConsumerImpl(consumer: KafkaConsumer, consumerConfig: KafkaConsumerConfig)
               ZIO.logError(
                 s"Error while handling message: (${record.value}) with key: (${record.key}) at offset: (${record.offset}): $e"
               )
-            // *>
-            //   Publisher.publish(cr.key, cr.value, s"${consumerConfig.consumerGroup}-errors")
+              *>
+              ErrorChannel.publishError(ErrorMessage(record.key, e.toString, record.value))
             )
           )
           .map(_.offset)

@@ -5,9 +5,18 @@ import dev.payment.reminder.util.config.{appEnvConf, applicationConfig, getConfi
 
 import zio.{ZIO, ZLayer}
 
-case class ApplicationConfig(kafkaClients: KafkaClientsConfig, paymentEventsConsumer: KafkaConsumerConfig)
+case class ApplicationConfig(
+  kafkaClients: KafkaClientsConfig,
+  paymentEventsConsumer: KafkaConsumerConfig,
+  paymentEventsProducer: KafkaProducerConfig,
+  paymentEventsError: KafkaErrorTopicConfig
+)
+
+case class KafkaProducerConfig(topic: String)
 
 case class KafkaConsumerConfig(topic: String, consumerGroup: String)
+
+case class KafkaErrorTopicConfig(topic: String, partitions: Int, replicationFactor: Int)
 
 case class KafkaClientsConfig(
   bootstrapServers: List[String],
