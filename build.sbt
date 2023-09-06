@@ -59,9 +59,12 @@ val commonDeps = Seq(
 )
 
 val testDeps = Seq(
-  "dev.zio" %% "zio-test"          % zioV % "test",
-  "dev.zio" %% "zio-test-sbt"      % zioV % "test",
-  "dev.zio" %% "zio-test-magnolia" % zioV % "test"
+  "dev.zio"       %% "zio-test"           % zioV        % "test",
+  "dev.zio"       %% "zio-test-sbt"       % zioV        % "test",
+  "dev.zio"       %% "zio-test-magnolia"  % zioV        % "test",
+  "dev.zio"       %% "zio-mock"           % zioMockV    % "test",
+  "dev.zio"       %% "zio-kafka-testkit"  % zioKafkaV   % "test",
+  "com.novocode"  % "junit-interface"     % "0.11"      % "test"
 )
 
 libraryDependencies ++= mainDependencies ++ commonDeps ++ testDeps
